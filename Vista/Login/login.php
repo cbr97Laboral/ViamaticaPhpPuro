@@ -29,12 +29,12 @@ if (isset($_SESSION['error'])) {
 
             <div class="form-campo">
                 <label class="form-label" for="username">Usuario o Correo:</label>
-                <input class="form-input" type="text" name="username" id="username">
+                <input class="form-input" type="text" name="username" id="username" required>
             </div>
 
             <div class="form-campo">
                 <label class="form-label" for="password">Contraseña:</label>
-                <input class="form-input" type="password" name="contrasena" id="contrasena">
+                <input class="form-input" type="password" name="contrasena" id="contrasena" required>
             </div>
 
             <input class="form-submit-button" type="submit" value="Iniciar Sesión">
