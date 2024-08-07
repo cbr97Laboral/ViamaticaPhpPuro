@@ -16,6 +16,7 @@ class RolesRepositorio
         }
 
         $roles = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+        BaseDeDatos::desconectar();
         return $roles;
     }
 
@@ -27,7 +28,6 @@ class RolesRepositorio
 
         $conexion = BaseDeDatos::conectar();
 
-        // Crear una lista de marcadores de posición para la consulta IN
         $rolesUsuario = implode(',', array_fill(0, count($roles), '?'));
 
         $sql = "SELECT DISTINCT idOpcionRol FROM roles_opcionesrol WHERE idRol IN ($rolesUsuario)";
@@ -52,10 +52,9 @@ class RolesRepositorio
 
         $conexion = BaseDeDatos::conectar();
 
-        // Crear una lista de marcadores de posición para la consulta IN
         $opcionsUsuario = implode(',', array_fill(0, count($idsOpcion), '?'));
 
-        $sql = "SELECT DISTINCT NombreOpcion FROM opcionesrol WHERE idOpcionRol IN ($opcionsUsuario)";
+        $sql = "SELECT DISTINCT NombreOpcion, Enlace FROM opcionesrol WHERE idOpcionRol IN ($opcionsUsuario)";
         $stmt = $conexion->prepare($sql);
         $stmt->execute($idsOpcion);
 
@@ -64,7 +63,7 @@ class RolesRepositorio
             return [];
         }
 
-        $opciones = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+        $opciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
         BaseDeDatos::desconectar();
         return $opciones;
     }
