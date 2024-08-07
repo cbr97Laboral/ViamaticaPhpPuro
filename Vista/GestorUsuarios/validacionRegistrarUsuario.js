@@ -9,7 +9,7 @@ function validarUsername(inputElement) {
 
     let msj = validarLongitud(username.length, minLength, maxLength);
 
-    const pattern = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)[A-Za-z\d]{5,15}$/;
+    const pattern = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)[A-Za-z\d]{8,20}$/;
     if (!pattern.test(username)) {
         msj += '<br>Debe contener al menos una letra mayuscula, un número y no debe contener signos.';
     }
