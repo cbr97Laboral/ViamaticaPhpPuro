@@ -4,31 +4,57 @@ require_once '../../Modelo/Parametros/ParametrosRepositorio.php';
 
 class UsuarioRepositorio
 {
-    public function registrarCliente(Usuario $usurarioModelo, int $idRole): bool {
+    public function listarUsuariosParaDashboard()
+    {
         $conexion = BaseDeDatos::conectar();
-    
+        $sql = "
+        SELECT 
+            U.idUsuario,
+            U.UserName,
+            CL.ContadorIntentos,
+            U.SesionActiva,
+            U.Bloqueado
+        FROM Usuarios U
+        INNER JOIN Personas P ON U.idPersona = P.idPersona
+        INNER JOIN ControlLogin CL ON U.idUsuario = CL.idUsuario";
+
+        $stmt = $conexion->prepare($sql);
+        $stmt->execute();
+
+        $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        BaseDeDatos::desconectar();
+
+        return $usuarios;
+    }
+
+    public function registrarCliente(Usuario $usurarioModelo, int $idRole): bool
+    {
+        $conexion = BaseDeDatos::conectar();
+
         try {
             $conexion->beginTransaction();
 
             $idPersona = $this->registrarPersona(
-                $usurarioModelo->getNombres(), 
-                $usurarioModelo->getApellidos(), 
+                $usurarioModelo->getNombres(),
+                $usurarioModelo->getApellidos(),
                 $usurarioModelo->getIdentificacion()
             );
-    
+
             if ($idPersona) {
                 $exito = $this->registrarUsuario(
-                    $usurarioModelo->getUserName(), 
-                    $usurarioModelo->getCorreo(), 
-                    $usurarioModelo->getContraseña(), 
+                    $usurarioModelo->getUserName(),
+                    $usurarioModelo->getCorreo(),
+                    $usurarioModelo->getContraseña(),
                     $idPersona
                 );
 
-
-                $this->registrarRolUsuario($this->ObtenerIdUsuario($usurarioModelo->getUserName()), $idRole);
-    
                 if ($exito) {
+                    $idUsuario = $this->ObtenerIdUsuario($usurarioModelo->getUserName());
+                    $this->registrarRolUsuario($idUsuario, $idRole);
                     $conexion->commit();
+                    $this->CrearIntentosUsuario($idUsuario);
+    
                     return true;
                 } else {
                     $conexion->rollBack();
@@ -41,7 +67,9 @@ class UsuarioRepositorio
         } catch (Exception $e) {
             $conexion->rollBack();
             throw new Exception("Error al registrar cliente: " . $e->getMessage());
-        }
+        } finally {
+            BaseDeDatos::desconectar();
+        }    
     }
 
     private function registrarPersona($nombres, $apellidos, $identificacion)
@@ -99,6 +127,19 @@ class UsuarioRepositorio
             throw new Exception("Error al registrar rol al usuario: " . $stmt->error);
         }
         BaseDeDatos::desconectar();
+    }
+
+    public function CrearIntentosUsuario(int $idUsuario): bool
+    {
+        $conexion = BaseDeDatos::conectar();
+
+        $sql = "INSERT INTO controllogin (idUsuario) VALUES (:idUsuario)";
+        $stmt = $conexion->prepare($sql);
+        $stmt->bindParam(':idUsuario', $idUsuario, PDO::PARAM_INT);
+        $resultado = $stmt->execute();
+        BaseDeDatos::desconectar();
+
+        return $resultado;
     }
 
     public function actualizarUsuario()

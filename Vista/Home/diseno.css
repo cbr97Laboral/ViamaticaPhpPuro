@@ -7,7 +7,7 @@
     gap: 10px;
 }
 
-nav {
+.menu {
     height: 100vh;
     border-radius: 10px;
     grid-area: navegacion;
@@ -18,7 +18,7 @@ nav {
     flex-direction: column;
 }
 
-nav a {
+.menu a {
     display: block;
     color: #fff;
     text-decoration: none;

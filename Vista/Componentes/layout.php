@@ -18,6 +18,6 @@ include '../Componentes/nav.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PhpPuro</title>
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>Vista/Home/diseno.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>Vista/Home/diseno.css?v2">
 </head>
 <body class="contenedorPrincipal">

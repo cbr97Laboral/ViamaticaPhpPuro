@@ -1,4 +1,4 @@
-<nav>
+<nav class="menu">
     <?php if (isset($_SESSION['usuario'])) : ?>
         <p><strong>Usuario:</strong><?php echo $_SESSION['usuario']['UserName'] ?></p>
     <?php endif; ?>
