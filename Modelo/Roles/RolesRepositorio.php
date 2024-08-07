@@ -2,6 +2,18 @@
 require_once '../../Entorno/BD/BasedeDatos.php';
 class RolesRepositorio
 {
+    public function ObtenerRolesParaSelect(): array {
+        $conexion = BaseDeDatos::conectar();
+        $sql = "SELECT idRol, NombreRol FROM roles";
+        $stmt = $conexion->prepare($sql);
+        $stmt->execute();
+        
+        $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+        BaseDeDatos::desconectar();
+        return $roles;
+    }
+
     public function ObtenerIdRolUsuario(int $idUsuario): array
     {
         $conexion = BaseDeDatos::conectar();

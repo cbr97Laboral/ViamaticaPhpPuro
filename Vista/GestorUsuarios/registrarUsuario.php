@@ -9,6 +9,7 @@ if (isset($_SESSION['error'])) {
     <?php if (isset($error)) : ?>
         <p class="error-message-registrar"><?php echo $error ?></p>
     <?php endif; ?>
+    <script src="cargaDatos.js"></script>
     <script src="validacionRegistrarUsuario.js"></script>
 
     <h1>Registrar Usuario</h1>

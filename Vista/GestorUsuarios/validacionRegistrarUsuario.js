@@ -169,24 +169,4 @@ document.addEventListener('DOMContentLoaded', function () {
             alert('Por favor, corrige los errores antes de enviar el formulario.');
         }
     });
-
-    //Cambiar por obtener por solicitud
-    const roles = [
-        { idRole: 1, NombreRole: 'Administrador' },
-        { idRole: 2, NombreRole: 'Usuario' }
-    ];
-    const rolesSelect = document.getElementById('roles');
-
-    rolesSelect.innerHTML = '';
-    const defaultOption = document.createElement('option');
-    defaultOption.value = '';
-    defaultOption.textContent = 'Seleccione un rol';
-    rolesSelect.appendChild(defaultOption);
-
-    roles.forEach(role => {
-        const option = document.createElement('option');
-        option.value = role.idRole;
-        option.textContent = role.NombreRole;
-        rolesSelect.appendChild(option);
-    });
 });
