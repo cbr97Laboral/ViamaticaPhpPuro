@@ -1,12 +1,9 @@
 $(document).ready(function() {
     $.ajax({
-        url: '../../Modelo/Usuario/obtenerUsuarioDashboard.php', // Cambia esto a la ruta correcta de tu archivo PHP
+        url: '../../Modelo/Usuario/obtenerUsuarioDashboard.php',
         type: 'GET',
         dataType: 'json',
         success: function(response) {
-            console.log(response);
-
-            // Calcula los totales
             let totalSesionActiva = 0;
             let totalBloqueado = 0;
 
@@ -15,7 +12,6 @@ $(document).ready(function() {
                 if (usuario.Bloqueado) totalBloqueado++;
             });
 
-            // Inicializa DataTables con el pie de tabla
             $('#datosUsuarios').DataTable({
                 data: response.datos,
                 columns: response.columnas,
@@ -23,12 +19,10 @@ $(document).ready(function() {
                 searching: true,
                 ordering: true,
                 footerCallback: function(row, data, start, end, display) {
-                    // Usado para sumar los totales
                     $(this.api().column(3).footer()).html(totalSesionActiva);
                     $(this.api().column(4).footer()).html(totalBloqueado);
                 },
                 initComplete: function(settings, json) {
-                    // Agrega el pie de tabla
                     $(settings.nTable).find('tfoot').html(
                         '<tr>' +
                             '<th colspan="2">Total</th>' +
