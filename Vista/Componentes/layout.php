@@ -9,6 +9,8 @@ $usuario = $_SESSION['usuario'];
 $opciones = $_SESSION['opcionesRol'];
 $ultimaSesion = $_SESSION['historialSesion'];
 
+$rolUsuario = $_SESSION['nombreRol'];
+
 include '../Componentes/nav.php';
 ?>
 

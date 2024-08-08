@@ -29,6 +29,7 @@ class LoginController
         $idRoles = $rolesRepo->ObtenerIdRolUsuario($idUsuario);
         $idsOpciones = $rolesRepo->ObtenerOpcionesRol($idRoles);
         $_SESSION['opcionesRol'] = $rolesRepo->ObtenerNombreOpcionesRol($idsOpciones);
+        $_SESSION['nombreRol'] = $rolesRepo->ObtenerNombreRol($idRoles[0]) ;
         $historialSesionRepo = new ObtenerNombreOpcionesRol();
         $historialSesionRepo->registrarInicioSesion($idUsuario);
 
