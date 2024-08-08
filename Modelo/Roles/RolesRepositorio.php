@@ -32,6 +32,23 @@ class RolesRepositorio
         return $roles;
     }
 
+    public function ObtenerNombreRol(int $idRol): array
+    {
+        $conexion = BaseDeDatos::conectar();
+        $sql = "SELECT NombreRol FROM roles WHERE idRol = :idRol";
+        $stmt = $conexion->prepare($sql);
+        $stmt->bindParam(':idRol', $idRol);
+        $stmt->execute();
+
+        if ($stmt->rowCount() < 1) {
+            BaseDeDatos::desconectar();
+            return [];
+        }
+        $roles = $stmt->fetch(PDO::FETCH_ASSOC);
+        BaseDeDatos::desconectar();
+        return $roles;
+    }
+
     public function ObtenerOpcionesRol(array $roles): array
     {
         if (empty($roles)) {

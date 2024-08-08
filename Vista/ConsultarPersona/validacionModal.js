@@ -1,5 +1,5 @@
 
-function validarUsername(inputElement) {
+function validarModalUsername(inputElement) {
     let username = inputElement.value.trim();
 
     inputElement.value = username;
@@ -7,25 +7,25 @@ function validarUsername(inputElement) {
     const minLength = 8;
     const maxLength = 20;
 
-    let msj = validarLongitud(username.length, minLength, maxLength);
+    let msj = validarModalLongitud(username.length, minLength, maxLength);
 
     const pattern = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)[A-Za-z\d]{8,20}$/;
     if (!pattern.test(username)) {
         msj += '<br>Debe contener al menos una letra mayuscula, un número y no debe contener signos.';
     }
 
-    document.getElementById('username-error').innerHTML = msj;
+    document.getElementById('username-modal-error').innerHTML = msj;
 }
 
-function validarNombres(inputElement) {
-    validarNombresApellido(inputElement, 'nombres-error', `nombres`);
+function validarModalNombres(inputElement) {
+    validarModalNombresApellido(inputElement, 'nombres-modal-error', `nombres`);
 }
 
-function validarApellidos(inputElement) {
-    validarNombresApellido(inputElement, 'apellidos-error', `apellidos`);
+function validarModalApellidos(inputElement) {
+    validarModalNombresApellido(inputElement, 'apellidos-modal-error', `apellidos`);
 }
 
-function validarNombresApellido(inputElement, identificadorHtmlError, campo) {
+function validarModalNombresApellido(inputElement, identificadorHtmlError, campo) {
     let msj = "";
     let nombresOapellido = inputElement.value.trim();
     inputElement.value = nombresOapellido;
@@ -38,7 +38,7 @@ function validarNombresApellido(inputElement, identificadorHtmlError, campo) {
 
     const maxLength = 100;
 
-    msj = validarLongitud(nombresOapellido.length, 1, maxLength);
+    msj = validarModalLongitud(nombresOapellido.length, 1, maxLength);
 
 
     const pattern = /^[A-Z][a-z]+ [A-Z][a-z]+$/; // Expresión regular para exactamente dos nombres separados por un solo espacio
@@ -56,7 +56,7 @@ function validarNombresApellido(inputElement, identificadorHtmlError, campo) {
     document.getElementById(identificadorHtmlError).innerHTML = msj;
 }
 
-function validarIdentificacion(inputElement) {
+function validarModalIdentificacion(inputElement) {
     let msj = '';
     let identificacion = inputElement.value.trim();
 
@@ -65,13 +65,13 @@ function validarIdentificacion(inputElement) {
 
     if (identificacion == "") {
         msj = "No puede estar vacío";
-        document.getElementById('identificacion-error').innerHTML = msj;
+        document.getElementById('identificacion-modal-error').innerHTML = msj;
         return;
     }
 
     const maxLength = 10;
 
-    msj = validarLongitud(identificacion.length, 10, maxLength);
+    msj = validarModalLongitud(identificacion.length, 10, maxLength);
 
     const pattern = /(.)\1{3}/;
 
@@ -81,17 +81,22 @@ function validarIdentificacion(inputElement) {
 
     inputElement.value = identificacion;
 
-    document.getElementById('identificacion-error').innerHTML = msj;
+    document.getElementById('identificacion-modal-error').innerHTML = msj;
 }
 
-function validarContrasena(inputElement) {
+function validarModalContrasena(inputElement) {
     const password = inputElement.value.trim();
     let msj = '';
+    inputElement.value = password;
+    if (password =="") {
+        document.getElementById('contrasena-modal-error').innerHTML = msj;
+        return;
+    }
 
     const minLength = 8;
     const maxLength = 100;
 
-    msj = validarLongitud(password.length, minLength, maxLength);
+    msj = validarModalLongitud(password.length, minLength, maxLength);
 
     if (!/[A-Z]/.test(password)) {
         msj += '<br>Debe contener al menos una letra mayúscula.<br>';
@@ -105,11 +110,11 @@ function validarContrasena(inputElement) {
         msj += 'Debe contener al menos un signo especial.<br>';
     }
 
-    document.getElementById('contrasena-error').innerHTML = msj;
+    document.getElementById('contrasena-modal-error').innerHTML = msj;
 }
 
 function togglePasswordVisibility() {
-    const passwordInput = document.getElementById('contrasena');
+    const passwordInput = document.getElementById('contrasena-modal');
     const toggleButton = document.getElementById('toggle-password');
 
     if (passwordInput.type === 'password') {
@@ -122,7 +127,7 @@ function togglePasswordVisibility() {
 }
 
 
-function validarLongitud(valor, minLength, maxLength) {
+function validarModalLongitud(valor, minLength, maxLength) {
     let msj = "";
     if (valor < minLength) {
         msj = `Debe tener al menos ${minLength} caracteres.`;
@@ -133,38 +138,36 @@ function validarLongitud(valor, minLength, maxLength) {
     return msj;
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-    const form = document.querySelector('form');
+function editarUsuarioModal() {
+    let formularioValido = true;
 
-    form.addEventListener('submit', function (event) {
-        let formularioValido = true;
+    document.querySelectorAll('.error-message-modal').forEach((element) => {
+        element.innerHTML = '';
+    });
 
-        document.querySelectorAll('.error-message-registrar').forEach((element) => {
-            element.innerHTML = '';
-        });
+    const usernameInput = document.getElementById('username-modal');
+    const nombresInput = document.getElementById('nombres-modal');
+    const apellidosInput = document.getElementById('apellidos-modal');
+    const identificacionInput = document.getElementById('identificacion-modal');
+    const contrasenaInput = document.getElementById('contrasena-modal');
 
-        const usernameInput = document.getElementById('username');
-        const nombresInput = document.getElementById('nombres');
-        const apellidosInput = document.getElementById('apellidos');
-        const identificacionInput = document.getElementById('identificacion');
-        const contrasenaInput = document.getElementById('contrasena');
+    validarModalUsername(usernameInput);
+    validarModalNombres(nombresInput);
+    validarModalApellidos(apellidosInput);
+    validarModalIdentificacion(identificacionInput);
+    validarModalContrasena(contrasenaInput);
 
-        validarUsername(usernameInput);
-        validarNombres(nombresInput);
-        validarApellidos(apellidosInput);
-        validarIdentificacion(identificacionInput);
-        validarContrasena(contrasenaInput);
-
-        const errorMessages = document.querySelectorAll('.error-message-registrar');
-        errorMessages.forEach(function (errorMessage) {
-            if (errorMessage.innerHTML !== '') {
-                formularioValido = false;
-            }
-        });
-
-        if (!formularioValido) {
-            event.preventDefault();
-            alert('Por favor, corrige los errores antes de enviar el formulario.');
+    const errorMessages = document.querySelectorAll('.error-message-modal');
+    errorMessages.forEach(function (errorMessage) {
+        if (errorMessage.innerHTML !== '') {
+            formularioValido = false;
         }
     });
-});
+
+    if (!formularioValido) {
+        alert('Por favor, corrige los errores antes de enviar el formulario.');
+        return;
+    }
+
+    editar();
+}

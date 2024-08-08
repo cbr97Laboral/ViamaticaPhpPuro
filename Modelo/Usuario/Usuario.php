@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../Modelo/Usuario/Correo.php';
 class Usuario extends Persona{
     private readonly string $userName;
     private Correo $correo;
-    private readonly string $contraseña;
+    private string $contraseña;
     private readonly bool $sesionActiva;
     private readonly bool $bloqueado;
 

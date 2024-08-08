@@ -10,6 +10,35 @@ class UsuarioController
         $this->user = new UsuarioRepositorio();
     }
 
+    public function obtenerPersonaFiltro($idRol, $username, $nombres, $apellidos, $identificacion, $correo)
+    {
+        header('Content-Type: application/json');
+
+        try {
+            $usuarios = $this->user->obtenerPersonaFiltro($idRol, $username, $nombres, $apellidos, $identificacion, $correo);
+
+            echo json_encode([
+                'columnas' => [
+                    ["data" => "idUsuario", "title" => "idUsuario"],
+                    ["data" => "idPersona", "title" => "idPersona"],
+                    ["data" => "UserName", "title" => "UserName"],
+                    ["data" => "Correo", "title" => "Correo"],
+                    ["data" => "Nombres", "title" => "Nombres"],
+                    ["data" => "Apellidos", "title" => "Apellidos"],
+                    ["data" => "SesionActiva", "title" => "SesionActiva"],
+                    ["data" => "Bloqueado", "title" => "Bloqueado"],
+                    ["data" => "NombreRol", "title" => "Rol"],
+                ],
+                'datos' => $usuarios
+            ]);
+        } catch (Exception $e) {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Error al obtener usuarios: ' . $e->getMessage()
+            ]);
+        }
+    }
+
     public function listarUsuariosParaDashboard()
     {
         header('Content-Type: application/json');
@@ -54,6 +83,26 @@ class UsuarioController
         } catch (Exception $e) {
             $_SESSION['error'] = "Error al registrar: " . $e->getMessage();
             Rutas::irRegistrarUsuario();
+        }
+    }
+
+    public function actualizarCliente($idUsuario, $idPersona, $idRole, $nombres, $apellidos, $identificacion, $username, $contrasena,$sesionActiva, $bloqueo)
+    {
+        header('Content-Type: application/json');
+        $usurarioModelo = new Usuario($nombres, $apellidos, $identificacion, $username, $contrasena, $sesionActiva, $bloqueo);
+        try {
+            $exito = $this->user->actualizarCliente($idPersona, $idUsuario, $idRole, $usurarioModelo);
+
+            echo json_encode([
+                'status' => $exito? 'EXITO': 'ERROR',
+                'message' => $exito
+            ]);
+
+        } catch (Exception $e) {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Error: ' . $e->getMessage()
+            ]);
         }
     }
 }

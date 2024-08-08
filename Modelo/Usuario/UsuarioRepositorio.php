@@ -4,6 +4,79 @@ require_once '../../Modelo/Parametros/ParametrosRepositorio.php';
 
 class UsuarioRepositorio
 {
+    public function obtenerPersonaFiltro($idRol, $username, $nombres, $apellidos, $identificacion, $correo)
+    {
+        $conexion = BaseDeDatos::conectar();
+
+        $parametros = [];
+        $condiciones = [];
+
+        // Condiciones para Usuarios
+        if ($username) {
+            $condiciones[] = "U.UserName LIKE :username";
+            $parametros[':username'] = '%' . $username . '%';
+        }
+
+        if ($correo) {
+            $condiciones[] = "U.Correo LIKE :correo";
+            $parametros[':correo'] = '%' . $correo . '%';
+        }
+
+        // Condiciones para Personas
+        if ($nombres) {
+            $condiciones[] = "P.Nombres LIKE :nombres";
+            $parametros[':nombres'] = '%' . $nombres . '%';
+        }
+
+        if ($apellidos) {
+            $condiciones[] = "P.Apellidos LIKE :apellidos";
+            $parametros[':apellidos'] = '%' . $apellidos . '%';
+        }
+
+        if ($identificacion) {
+            $condiciones[] = "P.Identificacion LIKE :identificacion";
+            $parametros[':identificacion'] = '%' . $identificacion . '%';
+        }
+
+        // Condición para el rol si está presente
+        if ($idRol) {
+            $condiciones[] = "UR.idRol = :idRol";
+            $parametros[':idRol'] = $idRol;
+        }
+        $condicionWhere = "";
+        if (count($condiciones) > 0) {
+            $condicionWhere = " WHERE " . implode(" AND ", $condiciones);
+        }
+
+        $sql = "
+        SELECT 
+            U.idUsuario,
+            P.idPersona,
+            U.UserName,
+            U.Correo,
+            P.Nombres,
+            P.Apellidos,
+            P.Identificacion,
+            U.SesionActiva,
+            U.Bloqueado,
+            R.NombreRol,
+            R.idRol
+        FROM Usuarios U
+        INNER JOIN personas P ON U.idPersona = P.idPersona
+        INNER JOIN usuarios_roles UR ON U.idUsuario = UR.idUsuario
+        INNER JOIN roles R ON UR.idRol = R.idRol
+        $condicionWhere";
+
+        $stmt = $conexion->prepare($sql);
+        $stmt->execute($parametros);
+
+        $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        BaseDeDatos::desconectar();
+
+        return $usuarios;
+    }
+
     public function listarUsuariosParaDashboard()
     {
         $conexion = BaseDeDatos::conectar();
@@ -54,7 +127,7 @@ class UsuarioRepositorio
                     $this->registrarRolUsuario($idUsuario, $idRole);
                     $conexion->commit();
                     $this->CrearIntentosUsuario($idUsuario);
-    
+
                     return true;
                 } else {
                     $conexion->rollBack();
@@ -69,7 +142,46 @@ class UsuarioRepositorio
             throw new Exception("Error al registrar cliente: " . $e->getMessage());
         } finally {
             BaseDeDatos::desconectar();
-        }    
+        }
+    }
+
+    public function actualizarCliente($idPersona, $idUsuario, int $idRole, Usuario $usurarioModelo): bool
+    {
+        $conexion = BaseDeDatos::conectar();
+
+        try {
+            $conexion->beginTransaction();
+
+            $this->actualizarPersona(
+                $idPersona,
+                $usurarioModelo->getNombres(),
+                $usurarioModelo->getApellidos(),
+                $usurarioModelo->getIdentificacion()
+            );
+
+            $contra = $usurarioModelo->getContraseña()? null: $usurarioModelo->getContraseña();
+
+            $this->actualizarUsuario(
+                $idUsuario,
+                $usurarioModelo->getUserName(),
+                $usurarioModelo->getCorreo(),
+                $contra,
+                $usurarioModelo->isSesionActiva(),
+                $usurarioModelo->isBloqueado(),
+                $idPersona
+            );
+
+            $this->actualizarRolUsuario($idUsuario, $idRole);
+            $conexion->commit();
+
+            return true;
+        } catch (Exception $e) {
+            $conexion->rollBack();
+            //return false;
+            throw new Exception("Error al registrar cliente: " . $e->getMessage());
+        } finally {
+            BaseDeDatos::desconectar();
+        }
     }
 
     private function registrarPersona($nombres, $apellidos, $identificacion)
@@ -88,6 +200,46 @@ class UsuarioRepositorio
             throw new Exception("Error al registrar persona: " . $stmt->error);
         }
         BaseDeDatos::desconectar();
+    }
+
+    private function actualizarPersona($idPersona,$nombres, $apellidos, $identificacion)
+    {
+        $conexion = BaseDeDatos::conectar();
+        $params = [];
+        $params[':idPersona'] = $idPersona;
+
+        $columnasActualizar = "";
+        if ($nombres !== null) {
+            $columnasActualizar .= " nombres = :nombres,";
+            $params[':nombres'] = $nombres;
+        }
+
+        if ($apellidos !== null) {
+            $columnasActualizar .= " apellidos = :apellidos,";
+            $params[':apellidos'] = $apellidos;
+        }
+
+        if ($identificacion !== null) {
+            $columnasActualizar .= " identificacion = :identificacion,";
+            $params[':identificacion'] = $identificacion;
+        }
+
+        $columnasActualizar = rtrim($columnasActualizar, ',');
+
+        $sql = "UPDATE personas SET " . $columnasActualizar . " WHERE idPersona = :idPersona";
+
+        try {
+            $stmt = $conexion->prepare($sql);
+            if ($stmt->execute($params)) {
+                return true;
+            } else {
+                throw new Exception("Error al actualizar persona: " . $stmt->errorInfo()[2]);
+            }
+        } catch (Exception $e) {
+            throw $e;
+        } finally {
+            BaseDeDatos::desconectar();
+        }
     }
 
     private function registrarUsuario($username, $correo, $contrasena, $idPersona)
@@ -111,6 +263,57 @@ class UsuarioRepositorio
         BaseDeDatos::desconectar();
     }
 
+    private function actualizarUsuario($idUsuario, $username = null, $correo = null, $contrasena = null, $sesionActiva = null, $bloqueo = null, $idPersona = null)
+    {
+        $conexion = BaseDeDatos::conectar();
+        $params = [];
+        $params[':idUsuario'] = $idUsuario;
+
+        $columnasActualizar = "";
+        if ($username !== null) {
+            $columnasActualizar .= " username = :username,";
+            $params[':username'] = $username;
+        }
+        if ($correo !== null) {
+            $columnasActualizar .= " correo = :correo,";
+            $params[':correo'] = $correo;
+        }
+        if ($contrasena !== null) {
+            $contrasenaHash = password_hash($contrasena, PASSWORD_BCRYPT);
+            $columnasActualizar .= " contrasena = :contrasena,";
+            $params[':contrasena'] = $contrasenaHash;
+        }
+        if ($sesionActiva !== null) {
+            $columnasActualizar .= " SesionActiva = :sesionActiva,";
+            $params[':sesionActiva'] = $sesionActiva;
+        }
+        if ($bloqueo !== null) {
+            $columnasActualizar .= " Bloqueado = :bloqueo,";
+            $params[':bloqueo'] = $bloqueo;
+        }
+        if ($idPersona !== null) {
+            $columnasActualizar .= " idPersona = :idPersona,";
+            $params[':idPersona'] = $idPersona;
+        }
+
+        $columnasActualizar = rtrim($columnasActualizar, ',');
+
+        $sql = "UPDATE usuarios SET " . $columnasActualizar . " WHERE idUsuario = :idUsuario";
+
+        try {
+            $stmt = $conexion->prepare($sql);
+            if ($stmt->execute($params)) {
+                return true;
+            } else {
+                throw new Exception("Error al actualizar usuario: " . $stmt->errorInfo()[2]);
+            }
+        } catch (Exception $e) {
+            throw $e;
+        } finally {
+            BaseDeDatos::desconectar();
+        }
+    }
+
     private function registrarRolUsuario(int $idUsuario, int $idRol)
     {
         $conexion = BaseDeDatos::conectar();
@@ -129,6 +332,36 @@ class UsuarioRepositorio
         BaseDeDatos::desconectar();
     }
 
+    private function actualizarRolUsuario(int $idUsuario, int $idRol)
+    {
+        $conexion = BaseDeDatos::conectar();
+        $params = [];
+        $params[':idUsuario'] = $idUsuario;
+
+        $columnasActualizar = "";
+        if ($idRol !== null) {
+            $columnasActualizar .= " idRol = :idRol,";
+            $params[':idRol'] = $idRol;
+        }
+
+        $columnasActualizar = rtrim($columnasActualizar, ',');
+
+        $sql = "UPDATE usuarios_roles SET " . $columnasActualizar . " WHERE idUsuario = :idUsuario";
+
+        try {
+            $stmt = $conexion->prepare($sql);
+            if ($stmt->execute($params)) {
+                return true;
+            } else {
+                throw new Exception("Error al actualizar usuarios_roles: " . $stmt->errorInfo()[2]);
+            }
+        } catch (Exception $e) {
+            throw $e;
+        } finally {
+            BaseDeDatos::desconectar();
+        }
+    }
+
     public function CrearIntentosUsuario(int $idUsuario): bool
     {
         $conexion = BaseDeDatos::conectar();
@@ -140,10 +373,6 @@ class UsuarioRepositorio
         BaseDeDatos::desconectar();
 
         return $resultado;
-    }
-
-    public function actualizarUsuario()
-    {
     }
 
     public function listarUsuarios()
